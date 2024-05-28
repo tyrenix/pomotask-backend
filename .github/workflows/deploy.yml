@@ -1,0 +1,48 @@
+name: Deploy backend
+
+on:
+  workflow_run:
+    workflows:
+      - "Test backend"
+    types:
+      - completed
+
+jobs:
+  build:
+    if: ${{ github.event.workflow_run.head_branch == 'master' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build docker image
+        run: docker build -t dilacraft/pomotask-backend:latest - f ./Dockerfile ./
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Push image to Docker Hub
+        run: docker image push dilacraft/pomotask-backend:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - "build"
+
+    steps:
+      - name: Connect with SSH and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: | 
+            docker-compose -f /root/pomotask/docker-compose.yml pull backend
+            docker-compose -f /root/pomotask/docker-compose.yml stop backend
+            docker-compose -f /root/pomotask/docker-compose.yml up -d backend
