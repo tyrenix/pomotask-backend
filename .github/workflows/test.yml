@@ -25,6 +25,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Info
+        run: |
+          pwd
+          ls -a 
+          ls test/
+
       - name: List tests
         run: npx jest --listTests
 
