@@ -1,16 +1,20 @@
 name: Deploy backend
 
+#on:
+#  workflow_run:
+#    workflows:
+#      - "Test backend"
+#    types:
+#      - completed
+
 on:
-  workflow_run:
-    workflows:
-      - "Test backend"
-    types:
-      - completed
+  push:
+    branches:
+      - master
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.head_branch == 'master' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
-
+#    if: ${{ github.event.workflow_run.head_branch == 'master' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-latest
 
     steps:
