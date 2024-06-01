@@ -14,4 +14,4 @@ export class UserDto {
 }
 
 export const toUserDto = (user: UserDocument) =>
-    plainToInstance(UserDto, user, {excludeExtraneousValues: true})
+    plainToInstance(UserDto, user.toObject(), {excludeExtraneousValues: true})
