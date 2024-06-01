@@ -4,15 +4,16 @@ import {
     HttpCode,
     Post,
     Res,
+    Req,
     UsePipes,
-    ValidationPipe
+    ValidationPipe,
+    UnauthorizedException
 } from '@nestjs/common'
-import type {Response} from 'express'
-import {AuthService} from './auth.service'
+import type {Response, Request} from 'express'
+import {AuthService, ETokens} from './auth.service'
 import {toUserDto} from '@src/user/dto/user.dto'
 import {AuthDto} from '@src/auth/dto/auth.dto'
-import {CreatedDto, toCreatedDto} from '@src/auth/dto/created.dto'
-import {Auth} from '@src/auth/decorators/auth.decorator'
+import {AuthSuccessDto, toAuthSuccessDto} from '@src/auth/dto/auth-success.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -23,22 +24,80 @@ export class AuthController {
     @UsePipes(new ValidationPipe())
     async register(
         @Res({passthrough: true}) res: Response,
+        @Req() req: Request,
         @Body() dto: AuthDto
-    ): Promise<CreatedDto> {
-        const {user, tokens} = await this.authService.register(dto)
+    ): Promise<AuthSuccessDto> {
+        const {user, tokens} = await this.authService.register({
+            email: dto.email,
+            password: dto.password,
+            userAgent: req.headers['user-agent'],
+            ip: (req.headers['x-real-ip'] as any) || req.ip || ''
+        })
 
         this.authService.addRefreshTokenToResponse(res, tokens.refreshToken)
 
-        return toCreatedDto({
+        return toAuthSuccessDto({
             ...toUserDto(user),
             accessToken: tokens.accessToken
         })
     }
 
     @Post('login')
-    @Auth()
     @HttpCode(200)
-    async login() {
-        return 'Hello world'
+    @UsePipes(new ValidationPipe())
+    async login(
+        @Res({passthrough: true}) res: Response,
+        @Req() req: Request,
+        @Body() dto: AuthDto
+    ): Promise<AuthSuccessDto> {
+        const {user, tokens} = await this.authService.login({
+            email: dto.email,
+            password: dto.password,
+            userAgent: req.headers['user-agent'],
+            ip: (req.headers['x-real-ip'] as any) || req.ip || ''
+        })
+
+        this.authService.addRefreshTokenToResponse(res, tokens.refreshToken)
+
+        return toAuthSuccessDto({
+            ...toUserDto(user),
+            accessToken: tokens.accessToken
+        })
+    }
+
+    @Post('tokens')
+    @HttpCode(200)
+    async updateTokens(
+        @Req() req: Request,
+        @Res({passthrough: true}) res: Response
+    ) {
+        const refreshTokenFromCookie = req.cookies?.[ETokens.refresh]
+        if (!refreshTokenFromCookie) {
+            this.authService.deleteRefreshTokenFromResponse(res)
+            throw new UnauthorizedException('Refresh token not passed')
+        }
+
+        const {accessToken, refreshToken} = await this.authService.getNewTokens(
+            refreshTokenFromCookie
+        )
+
+        this.authService.addRefreshTokenToResponse(res, refreshToken)
+
+        return {accessToken}
+    }
+
+    @Post('logout')
+    @HttpCode(200)
+    async logout(@Req() req: Request, @Res({passthrough: true}) res: Response) {
+        const refreshTokenFromCookie = req.cookies?.[ETokens.refresh]
+        if (!refreshTokenFromCookie) {
+            this.authService.deleteRefreshTokenFromResponse(res)
+            throw new UnauthorizedException('Refresh token not passed')
+        }
+
+        await this.authService.logout(refreshTokenFromCookie)
+        this.authService.deleteRefreshTokenFromResponse(res)
+
+        return
     }
 }

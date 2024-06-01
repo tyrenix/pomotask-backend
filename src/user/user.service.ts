@@ -3,7 +3,7 @@ import {Model, ObjectId} from 'mongoose'
 import {Injectable} from '@nestjs/common'
 import {InjectModel} from '@nestjs/mongoose'
 import {avatars} from '@src/user/data/avatars.data'
-import {User} from '@src/schemas/user.schema'
+import {User, UserDocument} from '@src/schemas/user.schema'
 import {AuthDto} from '@src/auth/dto/auth.dto'
 
 @Injectable()
@@ -16,7 +16,7 @@ export class UserService {
         return this.userModel.findById(id).exec()
     }
 
-    async getByEmail(email: string) {
+    async getByEmail(email: string): Promise<UserDocument | null> {
         return this.userModel.findOne({email}).exec()
     }
 

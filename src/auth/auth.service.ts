@@ -45,13 +45,54 @@ export class AuthService {
             throw new InternalServerErrorException('Error when created user')
         }
 
-        const sessionId = await this.sessionService.create(user.id)
-        const tokens = this.issueTokens({userId: user.id, sessionId})
+        const session = await this.sessionService.create(
+            {
+                userId: user.id,
+                userAgent: dto.userAgent,
+                ip: dto.ip
+            },
+            this.EXPIRE_DAY_REFRESH_TOKEN * 24 * 60 * 60
+        )
+
+        const tokens = this.issueTokens({
+            userId: user.id,
+            sessionId: session.id
+        })
 
         return {
             user,
             tokens
         }
+    }
+
+    async login(
+        dto: AuthDto
+    ): Promise<{user: UserDocument; tokens: Record<ETokens, string>}> {
+        const findUser = await this.userService.getByEmail(dto.email)
+        if (!findUser) {
+            throw new BadRequestException('Invalid password or email')
+        }
+
+        const isVerify = await argon2.verify(findUser.password, dto.password)
+        if (!isVerify) {
+            throw new BadRequestException('Invalid password or email')
+        }
+
+        const session = await this.sessionService.create(
+            {
+                userId: findUser.id,
+                userAgent: dto.userAgent,
+                ip: dto.ip
+            },
+            this.EXPIRE_DAY_REFRESH_TOKEN * 24 * 60 * 60
+        )
+
+        const tokens = this.issueTokens({
+            userId: findUser.id,
+            sessionId: session.id
+        })
+
+        return {user: findUser, tokens}
     }
 
     private issueTokens(data: Omit<JwtDto, 'type'>): Record<ETokens, string> {
@@ -72,9 +113,17 @@ export class AuthService {
         const result: JwtDto | undefined | null = await this.jwtService
             .verifyAsync(refreshToken)
             .catch(() => {})
+
         if (!result || result.type !== 'refresh') {
             throw new UnauthorizedException('Invalid refresh token')
         }
+
+        await this.sessionService.validate(result.userId, result.sessionId)
+        await this.sessionService.updateExpirationDate(
+            result.userId,
+            result.sessionId,
+            this.EXPIRE_DAY_REFRESH_TOKEN * 24 * 60 * 60
+        )
 
         const tokens = this.issueTokens({
             userId: result.userId,
@@ -84,13 +133,25 @@ export class AuthService {
         return tokens
     }
 
+    async logout(refreshToken: string) {
+        const result: JwtDto | undefined | null = await this.jwtService
+            .verifyAsync(refreshToken)
+            .catch(() => {})
+
+        if (!result || result.type !== 'refresh') {
+            throw new UnauthorizedException('Invalid refresh token')
+        }
+
+        return this.sessionService.close(result.userId, result.sessionId)
+    }
+
     addRefreshTokenToResponse(res: Response, refreshToken: string) {
         const expiresIn = new Date()
         expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN)
 
         res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
             httpOnly: true,
-            domain: getDomainConfig(this.configService).domain,
+            // domain: getDomainConfig(this.configService).domain,
             // sameSite: 'lax',
             // secure: true,
             expires: expiresIn

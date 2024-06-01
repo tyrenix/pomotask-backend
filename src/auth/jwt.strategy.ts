@@ -21,7 +21,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(jwt: JwtDto) {
-        const session = await this.sessionService.validate(jwt.sessionId)
-        return {jwt, session}
+        const session = await this.sessionService.validate(
+            jwt.userId,
+            jwt.sessionId
+        )
+        return {jwt, session, user: {userId: jwt.userId}}
     }
 }
