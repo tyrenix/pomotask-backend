@@ -9,11 +9,17 @@ export class PomodoroSession {
     @Prop({required: true})
     userId: string
 
+    @Prop()
+    taskId: string
+
     @Prop({default: 0})
     totalSeconds: number
 
     @Prop({default: false})
     isCompleted: boolean
+
+    @Prop({default: false})
+    isPaused: boolean
 
     @Prop({required: true})
     type: PomodoroSessionType

@@ -54,7 +54,7 @@ export class TaskController {
         @Param('taskId') taskId: string
     ): Promise<TaskDto> {
         if (!isValidObjectId(taskId)) {
-            throw new BadRequestException('Incorrect task id')
+            throw new BadRequestException('Invalid task id')
         }
 
         const task = await this.taskService.getById(userId, taskId)
