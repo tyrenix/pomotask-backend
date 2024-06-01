@@ -1,32 +1,32 @@
-#name: Test backend
-#
-#on:
-#  push:
-#    branches:
-#      - master
-#
-#  pull_request:
-#    branches:
-#      - master
-#
-#jobs:
-#  test:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v3
-#
-#      - name: Set up NodeJS
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: 22
-#
-#      - name: Install dependencies
-#        run: npm ci
-#
-#      - name: Run unit tests
-#        run: npm run test
-#
-#      - name: Run e2e tests
-#        run: npm run test:e2e
+name: Test backend
+
+on:
+  push:
+    branches:
+      - "this_branch_does_not_exist"
+
+  pull_request:
+    branches:
+      - "this_branch_does_not_exist"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Run e2e tests
+        run: npm run test:e2e
