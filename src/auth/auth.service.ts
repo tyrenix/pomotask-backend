@@ -14,6 +14,7 @@ import {UserDocument} from '@src/schemas/user.schema'
 import {ConfigService} from '@nestjs/config'
 import {getDomainConfig} from '@config/domain.config'
 import {SessionService} from '@src/session/session.service'
+import {PomodoroSettingsService} from '@src/pomodoro-settings/pomodoro-settings.service'
 
 export enum ETokens {
     access = 'accessToken',
@@ -29,7 +30,8 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        private readonly pomodoroSettingsService: PomodoroSettingsService
     ) {}
 
     async register(
@@ -44,6 +46,9 @@ export class AuthService {
         if (!user) {
             throw new InternalServerErrorException('Error when created user')
         }
+
+        // Create default configuration for pomodoro timer
+        await this.pomodoroSettingsService.create(user.id)
 
         const session = await this.sessionService.create(
             {
