@@ -3,11 +3,11 @@ name: Test backend
 on:
   push:
     branches:
-      - master
+      - "this_branch_does_not_exist"
 
   pull_request:
     branches:
-      - master
+      - "this_branch_does_not_exist"
 
 jobs:
   test:

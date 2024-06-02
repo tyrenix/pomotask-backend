@@ -12,6 +12,7 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["./*"],
+      "@config/*": ["./src/config/*"],
       "@src/*": ["./src/*"]
     },
     "incremental": true,
