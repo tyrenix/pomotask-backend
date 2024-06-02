@@ -138,12 +138,10 @@ export class AuthService {
             this.EXPIRE_DAY_REFRESH_TOKEN * 24 * 60 * 60
         )
 
-        const tokens = this.issueTokens({
+        return this.issueTokens({
             userId: result.userId,
             sessionId: result.sessionId
         })
-
-        return tokens
     }
 
     async logout(refreshToken: string) {
@@ -164,9 +162,9 @@ export class AuthService {
 
         res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
             httpOnly: true,
-            // domain: getDomainConfig(this.configService).domain,
-            // sameSite: 'lax',
-            // secure: true,
+            domain: getDomainConfig(this.configService).domain,
+            sameSite: 'lax',
+            secure: true,
             expires: expiresIn
         })
     }
