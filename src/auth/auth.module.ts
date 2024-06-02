@@ -8,6 +8,7 @@ import {JwtStrategy} from '@src/auth/jwt.strategy'
 import {SessionModule} from '@src/session/session.module'
 import {getJwtConfig} from '@config/jwt.config'
 import {PomodoroSettingsModule} from '@src/pomodoro-settings/pomodoro-settings.module'
+import {TaskModule} from '@src/task/task.module'
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import {PomodoroSettingsModule} from '@src/pomodoro-settings/pomodoro-settings.m
         ConfigModule,
         SessionModule,
         PomodoroSettingsModule,
+        TaskModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],

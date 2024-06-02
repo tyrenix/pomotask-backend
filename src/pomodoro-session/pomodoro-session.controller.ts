@@ -94,7 +94,7 @@ export class PomodoroSessionController {
 
     @Get('list')
     @HttpCode(200)
-    @UsePipes(new ValidationPipe({transform: true}))
+    @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
     @Auth()
     async list(
         @GetUserIdDecorator() userId: string,

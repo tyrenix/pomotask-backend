@@ -10,6 +10,6 @@ import {Task, TaskSchema} from '@src/schemas/task.schema'
     ],
     controllers: [TaskController],
     providers: [TaskService],
-    exports: []
+    exports: [TaskService]
 })
 export class TaskModule {}

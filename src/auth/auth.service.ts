@@ -15,6 +15,7 @@ import {ConfigService} from '@nestjs/config'
 import {getDomainConfig} from '@config/domain.config'
 import {SessionService} from '@src/session/session.service'
 import {PomodoroSettingsService} from '@src/pomodoro-settings/pomodoro-settings.service'
+import {TaskService} from '@src/task/task.service'
 
 export enum ETokens {
     access = 'accessToken',
@@ -31,7 +32,8 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly sessionService: SessionService,
-        private readonly pomodoroSettingsService: PomodoroSettingsService
+        private readonly pomodoroSettingsService: PomodoroSettingsService,
+        private readonly taskService: TaskService
     ) {}
 
     async register(
@@ -49,6 +51,12 @@ export class AuthService {
 
         // Create default configuration for pomodoro timer
         await this.pomodoroSettingsService.create(user.id)
+        // Create default task
+        await this.taskService.create(user.id, {
+            title: 'Знакомство с Pomotask',
+            description:
+                'Изучи все разделы нашего приложения, и стань экспертом!'
+        })
 
         const session = await this.sessionService.create(
             {
