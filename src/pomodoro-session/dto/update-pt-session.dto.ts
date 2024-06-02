@@ -1,9 +1,9 @@
-import {IsBoolean, IsOptional, IsString} from 'class-validator'
+import {IsBoolean, IsNumber, IsOptional} from 'class-validator'
 import {Expose, plainToInstance} from 'class-transformer'
 
 export class UpdatePtSessionDto {
     @Expose()
-    @IsString()
+    @IsNumber()
     @IsOptional()
     totalSeconds: number
 

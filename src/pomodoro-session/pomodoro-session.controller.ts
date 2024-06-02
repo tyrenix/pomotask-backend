@@ -3,11 +3,14 @@ import {
     BadRequestException,
     Body,
     Controller,
+    Delete,
+    Get,
     HttpCode,
     InternalServerErrorException,
     Param,
     Patch,
     Post,
+    Query,
     UsePipes,
     ValidationPipe
 } from '@nestjs/common'
@@ -27,6 +30,7 @@ import {
     UpdatePtSessionDto,
     toUpdatePtSessionDto
 } from '@src/pomodoro-session/dto/update-pt-session.dto'
+import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
 
 @Controller('pomodoro-session')
 export class PomodoroSessionController {
@@ -86,5 +90,36 @@ export class PomodoroSessionController {
         )
 
         return toPtSessionDto(ptSession)
+    }
+
+    @Get('list')
+    @HttpCode(200)
+    @UsePipes(new ValidationPipe({transform: true}))
+    @Auth()
+    async list(
+        @GetUserIdDecorator() userId: string,
+        @Query() filters: ListPtSessionDto
+    ): Promise<PtSessionDto[]> {
+        const ptSessions = await this.pomodoroSessionService.list(
+            userId,
+            filters
+        )
+
+        return ptSessions.map(ptSession => toPtSessionDto(ptSession))
+    }
+
+    @Delete(':ptSessionId')
+    @HttpCode(200)
+    @Auth()
+    async deleteById(
+        @GetUserIdDecorator() userId: string,
+        @Param('ptSessionId') ptSessionId: string
+    ): Promise<{success: true}> {
+        if (!isValidObjectId(ptSessionId)) {
+            throw new BadRequestException('Invalid pomodoro session id')
+        }
+
+        await this.pomodoroSessionService.deleteById(userId, ptSessionId)
+        return {success: true}
     }
 }

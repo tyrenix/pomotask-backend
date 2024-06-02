@@ -11,6 +11,9 @@ import {
 } from '@src/schemas/pomodoro-session.schema'
 import {CreatePtSessionDto} from '@src/pomodoro-session/dto/create-pt-session.dto'
 import {UpdatePtSessionDto} from '@src/pomodoro-session/dto/update-pt-session.dto'
+import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
+import {IsBoolean} from 'class-validator'
+import {PtSessionDto} from '@src/pomodoro-session/dto/pt-session.dto'
 
 @Injectable()
 export class PomodoroSessionService {
@@ -49,8 +52,68 @@ export class PomodoroSessionService {
             throw new NotFoundException('Pomodoro session not found')
         }
 
+        if (ptSession.isCompleted) {
+            throw new BadRequestException(
+                'You cannot update a completed pomodoro session'
+            )
+        }
+
         await ptSession.updateOne({...dto})
 
         return this.pomodoroSessionModel.findOne({_id: ptSessionId, userId})
+    }
+
+    async list(
+        userId: string,
+        filters: ListPtSessionDto
+    ): Promise<PomodoroSessionDocument[]> {
+        const query: any = {userId}
+        if (typeof filters.isCompleted === 'boolean') {
+            query.isCompleted = filters.isCompleted
+        }
+
+        if (filters.taskId) {
+            query.taskId = filters.taskId
+        }
+
+        return this.pomodoroSessionModel
+            .find(query)
+            .skip(filters.page * filters.limit)
+            .limit(filters.limit)
+            .exec()
+    }
+
+    async getById(
+        userId: string,
+        ptSessionId: string
+    ): Promise<PomodoroSessionDocument> {
+        const ptSession = await this.pomodoroSessionModel.findOne({
+            _id: ptSessionId,
+            userId
+        })
+
+        if (!ptSession) {
+            throw new NotFoundException('Not found pomodoro session')
+        }
+
+        return ptSession
+    }
+
+    async deleteById(userId: string, ptSessionId: string) {
+        const isCompleted = await this.pomodoroSessionModel.findOne({
+            _id: ptSessionId,
+            isCompleted: true,
+            userId
+        })
+
+        if (isCompleted) {
+            throw new BadRequestException(
+                'You cannot delete a completed pomodoro session'
+            )
+        }
+
+        return this.pomodoroSessionModel
+            .deleteOne({_id: ptSessionId, userId})
+            .exec()
     }
 }
