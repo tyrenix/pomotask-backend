@@ -1,10 +1,11 @@
 import * as argon2 from 'argon2'
 import {Model, ObjectId} from 'mongoose'
-import {Injectable} from '@nestjs/common'
+import {Injectable, NotFoundException} from '@nestjs/common'
 import {InjectModel} from '@nestjs/mongoose'
 import {avatars} from '@src/user/data/avatars.data'
 import {User, UserDocument} from '@src/schemas/user.schema'
 import {AuthDto} from '@src/auth/dto/auth.dto'
+import {UpdateUserDto} from '@src/user/dto/update-user.dto'
 
 @Injectable()
 export class UserService {
@@ -28,5 +29,22 @@ export class UserService {
         }
 
         return new this.userModel(user).save()
+    }
+
+    async updateById(
+        userId: string,
+        dto: Partial<UpdateUserDto>
+    ): Promise<UserDocument> {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new NotFoundException('Not found user')
+        }
+
+        if (dto.password) {
+            dto.password = await argon2.hash(dto.password)
+        }
+
+        await user.updateOne(dto)
+        return this.userModel.findById(userId)
     }
 }
