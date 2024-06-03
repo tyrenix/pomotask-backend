@@ -18,8 +18,6 @@ import {CreateTaskDto} from '@src/task/dto/create-task.dto'
 import {TaskDto, toTaskDto} from '@src/task/dto/task.dto'
 import {GetUserIdDecorator} from '@src/auth/decorators/get-user-id.decorator'
 import {Auth} from '@src/auth/decorators/auth.decorator'
-import {use} from 'passport'
-import {registerAs} from '@nestjs/config'
 import {toUpdateTaskDto, UpdateTaskDto} from '@src/task/dto/update-task.dto'
 
 @Controller('task')

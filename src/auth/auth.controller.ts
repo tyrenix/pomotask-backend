@@ -70,7 +70,7 @@ export class AuthController {
     async updateTokens(
         @Req() req: Request,
         @Res({passthrough: true}) res: Response
-    ) {
+    ): Promise<{accessToken: string}> {
         const refreshTokenFromCookie = req.cookies?.[ETokens.refresh]
         if (!refreshTokenFromCookie) {
             this.authService.deleteRefreshTokenFromResponse(res)
@@ -88,7 +88,7 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(200)
-    async logout(@Req() req: Request, @Res({passthrough: true}) res: Response) {
+    async logout(@Req() req: Request, @Res({passthrough: true}) res: Response): Promise<{success: true}> {
         const refreshTokenFromCookie = req.cookies?.[ETokens.refresh]
         if (!refreshTokenFromCookie) {
             this.authService.deleteRefreshTokenFromResponse(res)
@@ -98,6 +98,6 @@ export class AuthController {
         await this.authService.logout(refreshTokenFromCookie)
         this.authService.deleteRefreshTokenFromResponse(res)
 
-        return
+        return {success: true}
     }
 }
