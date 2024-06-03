@@ -4,6 +4,7 @@ import {
     Controller,
     Delete,
     Get,
+    Query,
     HttpCode,
     NotFoundException,
     Param,
@@ -19,6 +20,7 @@ import {TaskDto, toTaskDto} from '@src/task/dto/task.dto'
 import {GetUserIdDecorator} from '@src/auth/decorators/get-user-id.decorator'
 import {Auth} from '@src/auth/decorators/auth.decorator'
 import {toUpdateTaskDto, UpdateTaskDto} from '@src/task/dto/update-task.dto'
+import {SearchFilterTypes} from '@src/task/types/search-filter.types'
 
 @Controller('task')
 export class TaskController {
@@ -39,7 +41,10 @@ export class TaskController {
     @Get('list')
     @HttpCode(200)
     @Auth()
-    async list(@GetUserIdDecorator() userId: string): Promise<TaskDto[]> {
+    async list(
+        @GetUserIdDecorator() userId: string,
+        @Query() filters: SearchFilterTypes
+    ): Promise<TaskDto[]> {
         const tasks = await this.taskService.list(userId)
         return tasks.map(task => toTaskDto(task))
     }
