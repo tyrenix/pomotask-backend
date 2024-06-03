@@ -8,7 +8,8 @@ async function bootstrap() {
     app.enableCors({
         credentials: true,
         origin: ['localhost:3000', 'http://localhost:3000', 'localhost'],
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        exposedHeaders: 'set-cookie'
     })
 
     await app.listen(3000)
