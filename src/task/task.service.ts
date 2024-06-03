@@ -4,7 +4,6 @@ import {Model} from 'mongoose'
 import {Task, TaskDocument} from '@src/schemas/task.schema'
 import {CreateTaskDto} from '@src/task/dto/create-task.dto'
 import {SearchFilterTypes} from '@src/task/types/search-filter.types'
-import {filter} from 'rxjs'
 import {UpdateTaskDto} from '@src/task/dto/update-task.dto'
 
 @Injectable()
