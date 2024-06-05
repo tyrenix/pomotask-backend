@@ -5,6 +5,7 @@ import {
     NotFoundException
 } from '@nestjs/common'
 import {InjectModel} from '@nestjs/mongoose'
+import dateFns from 'date-fns'
 import {
     PomodoroSession,
     PomodoroSessionDocument
@@ -97,6 +98,33 @@ export class PomodoroSessionService {
         }
 
         return ptSession
+    }
+
+    async getActivity(
+        userId: string,
+        filter: 'week' | 'month'
+    ): Promise<number> {
+        const createdAtFilters: any = {}
+        if (filter === 'week') {
+            createdAtFilters.$gte = dateFns.startOfWeek(new Date(), {
+                weekStartsOn: 2
+            })
+
+            createdAtFilters.$lte = dateFns.endOfWeek(new Date(), {
+                weekStartsOn: 2
+            })
+        } else {
+            createdAtFilters.$gte = dateFns.startOfMonth(new Date())
+            createdAtFilters.$lte = dateFns.endOfMonth(new Date())
+        }
+
+        const ptSessions = await this.pomodoroSessionModel.find({
+            userId,
+            isCompleted: true,
+            createdAt: createdAtFilters
+        })
+
+        return ptSessions.reduce((sum, prev) => prev.totalSeconds + sum, 0)
     }
 
     async deleteById(userId: string, ptSessionId: string) {
