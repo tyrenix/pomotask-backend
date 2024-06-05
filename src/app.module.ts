@@ -7,6 +7,7 @@ import {RedisModule} from '@src/redis/redis.module'
 import {SessionModule} from '@src/session/session.module'
 import {PomodoroSettingsModule} from '@src/pomodoro-settings/pomodoro-settings.module'
 import {PomodoroSessionModule} from '@src/pomodoro-session/pomodoro-session.module'
+import {UserModule} from '@src/user/user.module'
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import {PomodoroSessionModule} from '@src/pomodoro-session/pomodoro-session.modu
         RedisModule,
         SessionModule,
         AuthModule,
+        UserModule,
         PomodoroSettingsModule,
         PomodoroSessionModule,
         TaskModule
