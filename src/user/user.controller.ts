@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     HttpCode,
     Patch,
     UsePipes,
@@ -26,5 +27,13 @@ export class UserController {
     ): Promise<UserDto> {
         const updatedUser = await this.userService.updateById(userId, dto)
         return toUserDto(updatedUser)
+    }
+
+    @Get()
+    @HttpCode(200)
+    @Auth()
+    async getById(@GetUserIdDecorator() userId: string): Promise<UserDto> {
+        const user = await this.userService.getById(userId)
+        return toUserDto(user)
     }
 }

@@ -108,6 +108,16 @@ export class PomodoroSessionController {
         return ptSessions.map(ptSession => toPtSessionDto(ptSession))
     }
 
+    @Get('activity')
+    @HttpCode(200)
+    @Auth()
+    async getActivity(
+        @GetUserIdDecorator() userId: string,
+        @Query() filter: 'week' | 'month' = 'week'
+    ) {
+        return this.pomodoroSessionService.getActivity(userId, filter)
+    }
+
     @Delete(':ptSessionId')
     @HttpCode(200)
     @Auth()
