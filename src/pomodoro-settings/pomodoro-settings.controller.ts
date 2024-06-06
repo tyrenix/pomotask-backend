@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     HttpCode,
     Patch,
     UsePipes,
@@ -20,6 +21,15 @@ export class PomodoroSettingsController {
     constructor(
         private readonly pomodoroSettingsService: PomodoroSettingsService
     ) {}
+
+    @Get()
+    @HttpCode(200)
+    @UsePipes()
+    @Auth()
+    async get(@GetUserIdDecorator() userId: string): Promise<PtSettingsDto> {
+        const settings = await this.pomodoroSettingsService.get(userId)
+        return toPtSettingsDto(settings)
+    }
 
     @Patch('update')
     @HttpCode(200)

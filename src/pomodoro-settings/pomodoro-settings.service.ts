@@ -18,6 +18,10 @@ export class PomodoroSettingsService {
         return new this.pomodoroSettingsModel({userId}).save()
     }
 
+    async get(userId: string): Promise<PomodoroSettingsDocument> {
+        return this.pomodoroSettingsModel.findOne({userId}).exec()
+    }
+
     async updateByUserId(
         userId: string,
         dto: UpdatePtSettingsDto

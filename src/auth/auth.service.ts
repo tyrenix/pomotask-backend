@@ -1,21 +1,20 @@
-import * as argon2 from 'argon2'
 import {
     BadRequestException,
     Injectable,
     InternalServerErrorException,
     UnauthorizedException
 } from '@nestjs/common'
-import type {Response} from 'express'
-import {UserService} from '@src/user/user.service'
-import {AuthDto} from '@src/auth/dto/auth.dto'
-import {JwtService} from '@nestjs/jwt'
-import {JwtDto} from '@src/auth/dto/jwt.dto'
-import {UserDocument} from '@src/schemas/user.schema'
 import {ConfigService} from '@nestjs/config'
-import {getDomainConfig} from '@config/domain.config'
-import {SessionService} from '@src/session/session.service'
+import {JwtService} from '@nestjs/jwt'
+import {AuthDto} from '@src/auth/dto/auth.dto'
+import {JwtDto} from '@src/auth/dto/jwt.dto'
 import {PomodoroSettingsService} from '@src/pomodoro-settings/pomodoro-settings.service'
+import {UserDocument} from '@src/schemas/user.schema'
+import {SessionService} from '@src/session/session.service'
 import {TaskService} from '@src/task/task.service'
+import {UserService} from '@src/user/user.service'
+import * as argon2 from 'argon2'
+import type {Response} from 'express'
 
 export enum ETokens {
     access = 'accessToken',
