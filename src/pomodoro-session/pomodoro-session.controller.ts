@@ -31,6 +31,10 @@ import {
     toUpdatePtSessionDto
 } from '@src/pomodoro-session/dto/update-pt-session.dto'
 import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
+import {
+    ActivityFiltersPtSessionDto,
+    toActivityFiltersPtSessionDto
+} from './dto/activity-filters-pt-session.dto'
 
 @Controller('pomodoro-session')
 export class PomodoroSessionController {
@@ -110,12 +114,18 @@ export class PomodoroSessionController {
 
     @Get('activity')
     @HttpCode(200)
+    @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
     @Auth()
     async getActivity(
         @GetUserIdDecorator() userId: string,
-        @Query() filter: 'week' | 'month' = 'week'
-    ) {
-        return this.pomodoroSessionService.getActivity(userId, filter)
+        @Query() filters: ActivityFiltersPtSessionDto
+    ): Promise<{activity: number}> {
+        const activity = await this.pomodoroSessionService.getActivity(
+            userId,
+            filters
+        )
+
+        return {activity}
     }
 
     @Delete(':ptSessionId')

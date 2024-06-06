@@ -3,12 +3,11 @@ import {Types as MongooseTypes} from 'mongoose'
 import {
     Injectable,
     InternalServerErrorException,
+    NotFoundException,
     UnauthorizedException
 } from '@nestjs/common'
 import {InjectRedis} from '@nestjs-modules/ioredis'
 import {SessionDataDto} from '@src/session/dto/session-data.dto'
-import * as console from 'console'
-import {use} from 'passport'
 
 @Injectable()
 export class SessionService {
@@ -35,6 +34,20 @@ export class SessionService {
         }
 
         return {id: sessionId}
+    }
+
+    async getById(userId: string, sessionId: string): Promise<SessionDataDto> {
+        const result: SessionDataDto | undefined | null = JSON.parse(
+            await this.redisService.get(
+                `${this.SESSION_PREFIX}:${userId}:${sessionId}`
+            )
+        )
+
+        if (!result) {
+            throw new NotFoundException('Not found session')
+        }
+
+        return result
     }
 
     async validate(userId: string, sessionId: string): Promise<SessionDataDto> {

@@ -5,7 +5,7 @@ import {
     NotFoundException
 } from '@nestjs/common'
 import {InjectModel} from '@nestjs/mongoose'
-import dateFns from 'date-fns'
+import * as dateFns from 'date-fns'
 import {
     PomodoroSession,
     PomodoroSessionDocument
@@ -15,6 +15,7 @@ import {UpdatePtSessionDto} from '@src/pomodoro-session/dto/update-pt-session.dt
 import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
 import {IsBoolean} from 'class-validator'
 import {PtSessionDto} from '@src/pomodoro-session/dto/pt-session.dto'
+import {ActivityFiltersPtSessionDto} from './dto/activity-filters-pt-session.dto'
 
 @Injectable()
 export class PomodoroSessionService {
@@ -102,26 +103,31 @@ export class PomodoroSessionService {
 
     async getActivity(
         userId: string,
-        filter: 'week' | 'month'
+        filters: ActivityFiltersPtSessionDto
     ): Promise<number> {
-        const createdAtFilters: any = {}
-        if (filter === 'week') {
-            createdAtFilters.$gte = dateFns.startOfWeek(new Date(), {
-                weekStartsOn: 2
-            })
+        const queryFilters: any = {}
+        const dateNow = new Date()
 
-            createdAtFilters.$lte = dateFns.endOfWeek(new Date(), {
-                weekStartsOn: 2
-            })
-        } else {
-            createdAtFilters.$gte = dateFns.startOfMonth(new Date())
-            createdAtFilters.$lte = dateFns.endOfMonth(new Date())
+        if (filters.filter === 'week') {
+            queryFilters.createdAt = {
+                $gte: dateFns.startOfWeek(dateNow, {
+                    weekStartsOn: 2
+                }),
+                $lte: dateFns.endOfWeek(dateNow, {
+                    weekStartsOn: 2
+                })
+            }
+        } else if (filters.filter === 'day') {
+            queryFilters.createdAt = {
+                $gte: dateFns.startOfDay(dateNow),
+                $lte: dateFns.endOfDay(dateNow)
+            }
         }
 
         const ptSessions = await this.pomodoroSessionModel.find({
             userId,
             isCompleted: true,
-            createdAt: createdAtFilters
+            ...queryFilters
         })
 
         return ptSessions.reduce((sum, prev) => prev.totalSeconds + sum, 0)
