@@ -80,6 +80,7 @@ export class PomodoroSessionService {
 
         return this.pomodoroSessionModel
             .find(query)
+            .sort({createdAt: -1})
             .skip(filters.page * filters.limit)
             .limit(filters.limit)
             .exec()

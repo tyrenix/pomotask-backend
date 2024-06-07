@@ -10,13 +10,13 @@ export class ListPtSessionDto {
     taskId?: string
 
     @Expose()
-    @Transform(({value}) => value ?? 20)
+    @Transform(({value}) => (!Number(value) ? 20 : Number(value)))
     @IsNumber()
     @IsOptional()
     limit: number
 
     @Expose()
-    @Transform(({value}) => value ?? 0)
+    @Transform(({value}) => (!Number(value) ? 0 : Number(value)))
     @IsNumber()
     @IsOptional()
     page: number
