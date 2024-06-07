@@ -112,21 +112,6 @@ export class PomodoroSessionController {
         return ptSessions.map(ptSession => toPtSessionDto(ptSession))
     }
 
-    @Get(':ptSessionId')
-    @HttpCode(200)
-    @Auth()
-    async getById(
-        @GetUserIdDecorator() userId: string,
-        @Param('ptSessionId') ptSessionId: string
-    ): Promise<PtSessionDto> {
-        const ptSession = await this.pomodoroSessionService.getById(
-            userId,
-            ptSessionId
-        )
-
-        return toPtSessionDto(ptSession)
-    }
-
     @Get('activity')
     @HttpCode(200)
     @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
@@ -141,6 +126,25 @@ export class PomodoroSessionController {
         )
 
         return {activity}
+    }
+
+    @Get(':ptSessionId')
+    @HttpCode(200)
+    @Auth()
+    async getById(
+        @GetUserIdDecorator() userId: string,
+        @Param('ptSessionId') ptSessionId: string
+    ): Promise<PtSessionDto> {
+        if (!isValidObjectId(ptSessionId)) {
+            throw new BadRequestException('Invalid pomodoro session id')
+        }
+
+        const ptSession = await this.pomodoroSessionService.getById(
+            userId,
+            ptSessionId
+        )
+
+        return toPtSessionDto(ptSession)
     }
 
     @Delete(':ptSessionId')
