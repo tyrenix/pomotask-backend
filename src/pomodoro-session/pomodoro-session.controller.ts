@@ -135,6 +135,10 @@ export class PomodoroSessionController {
         @GetUserIdDecorator() userId: string,
         @Param('ptSessionId') ptSessionId: string
     ): Promise<PtSessionDto> {
+        if (!isValidObjectId(ptSessionId)) {
+            throw new BadRequestException('Invalid pomodoro session id')
+        }
+
         const ptSession = await this.pomodoroSessionService.getById(
             userId,
             ptSessionId
