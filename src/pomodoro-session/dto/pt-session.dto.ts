@@ -23,6 +23,9 @@ export class PtSessionDto {
 
     @Expose()
     type: PomodoroSessionType
+
+    @Expose()
+    createdAt: Date
 }
 
 export const toPtSessionDto = (ptSession: PomodoroSessionDocument) =>
