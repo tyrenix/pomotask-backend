@@ -45,7 +45,7 @@ export class TaskController {
         @GetUserIdDecorator() userId: string,
         @Query() filters: SearchFilterTypes
     ): Promise<TaskDto[]> {
-        const tasks = await this.taskService.list(userId)
+        const tasks = await this.taskService.list(userId, filters)
         return tasks.map(task => toTaskDto(task))
     }
 

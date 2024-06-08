@@ -6,6 +6,11 @@ export class ActivityFiltersPtSessionDto {
     @IsOptional()
     @IsIn(['day', 'week', 'total'])
     filter?: 'day' | 'week' | 'total'
+
+    @Expose()
+    @IsOptional()
+    @IsString()
+    taskId?: string
 }
 
 export const toActivityFiltersPtSessionDto = (

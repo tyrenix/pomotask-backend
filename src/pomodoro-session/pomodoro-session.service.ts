@@ -109,6 +109,8 @@ export class PomodoroSessionService {
         const queryFilters: any = {}
         const dateNow = new Date()
 
+        if (filters.taskId) queryFilters.taskId = filters.taskId
+
         if (filters.filter === 'week') {
             queryFilters.createdAt = {
                 $gte: dateFns.startOfWeek(dateNow, {
