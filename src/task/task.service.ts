@@ -17,7 +17,13 @@ export class TaskService {
             userId,
             title: dto.title,
             description: dto.description,
-            index: await this.getCount(userId, {isCompleted: false})
+            index:
+                ((
+                    await this.taskModel
+                        .findOne({userId, isCompleted: false})
+                        .select('index')
+                        .sort({index: -1})
+                )?.index || 0) + 1
         }).save()
     }
 
@@ -53,6 +59,19 @@ export class TaskService {
         const task = await this.taskModel.findOne({_id: taskId, userId})
         if (!task) {
             throw new NotFoundException('Task not found')
+        }
+
+        if (
+            typeof dto.isCompleted === 'boolean' &&
+            dto.isCompleted !== task.isCompleted
+        ) {
+            dto.index =
+                ((
+                    await this.taskModel
+                        .findOne({userId, isCompleted: dto.isCompleted})
+                        .select('index')
+                        .sort({index: -1})
+                )?.index || 0) + 1
         }
 
         await task.updateOne(dto)
