@@ -41,7 +41,10 @@ export class TaskService {
         userId: string,
         filters?: SearchFilterTypes
     ): Promise<TaskDocument[]> {
-        return this.taskModel.find({userId, ...(filters || {})}).exec()
+        return this.taskModel
+            .find({userId, ...(filters || {})})
+            .sort({index: 1})
+            .exec()
     }
 
     async getById(
@@ -76,6 +79,18 @@ export class TaskService {
 
         await task.updateOne(dto)
         return this.taskModel.findOne({_id: taskId, userId})
+    }
+
+    async updateIndex(userId: string, tasksIds: string[]) {
+        for (let index = 0; index < tasksIds.length; index++) {
+            await this.taskModel.updateOne(
+                {
+                    _id: tasksIds[index],
+                    userId
+                },
+                {index}
+            )
+        }
     }
 
     async deleteById(userId: string, taskId: string) {

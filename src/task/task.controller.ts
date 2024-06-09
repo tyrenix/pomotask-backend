@@ -68,6 +68,22 @@ export class TaskController {
         return toTaskDto(task)
     }
 
+    @Patch('update-index')
+    @HttpCode(200)
+    @Auth()
+    async updateIndex(
+        @GetUserIdDecorator() userId: string,
+        @Body('tasksIds') tasksIds: string[]
+    ): Promise<{success: true}> {
+        for (const taskId of tasksIds) {
+            if (!isValidObjectId(taskId))
+                throw new BadRequestException(`Invalid task id: ${taskId}`)
+        }
+
+        await this.taskService.updateIndex(userId, tasksIds)
+        return {success: true}
+    }
+
     @Patch(':taskId')
     @HttpCode(200)
     @UsePipes(new ValidationPipe())
