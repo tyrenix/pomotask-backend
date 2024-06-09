@@ -257,7 +257,7 @@ export class PomodoroSessionService {
             ...queryFilters
         })
 
-        return ptSessions.reduce((sum, prev) => prev.totalSeconds + sum, 0)
+        return ptSessions.reduce((sum, prev) => prev.completedSeconds + sum, 0)
     }
 
     async deleteById(userId: string, ptSessionId: string) {
