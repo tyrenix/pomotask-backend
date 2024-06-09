@@ -12,8 +12,11 @@ export class PomodoroSession {
     @Prop()
     taskId: string
 
-    @Prop({default: 0})
+    @Prop({required: true})
     totalSeconds: number
+
+    @Prop({default: 0})
+    completedSeconds: number
 
     @Prop({default: false})
     isCompleted: boolean
@@ -23,6 +26,9 @@ export class PomodoroSession {
 
     @Prop({required: true})
     type: PomodoroSessionType
+
+    @Prop({required: true})
+    completionTime: Date
 }
 
 export const PomodoroSessionSchema =

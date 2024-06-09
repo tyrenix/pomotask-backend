@@ -1,24 +1,6 @@
-import {IsBoolean, IsNumber, IsOptional} from 'class-validator'
-import {Expose, plainToInstance} from 'class-transformer'
+import {IsString} from 'class-validator'
 
 export class UpdatePtSessionDto {
-    @Expose()
-    @IsNumber()
-    @IsOptional()
-    totalSeconds: number
-
-    @Expose()
-    @IsBoolean()
-    @IsOptional()
-    isCompleted: boolean
-
-    @Expose()
-    @IsBoolean()
-    @IsOptional()
-    isPaused: boolean
+    @IsString()
+    id: string
 }
-
-export const toUpdatePtSessionDto = (updatePtSession: UpdatePtSessionDto) =>
-    plainToInstance(UpdatePtSessionDto, updatePtSession, {
-        excludeExtraneousValues: true
-    })

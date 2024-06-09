@@ -16,6 +16,9 @@ export class PtSessionDto {
     totalSeconds: number
 
     @Expose()
+    completedSeconds: number
+
+    @Expose()
     isCompleted: boolean
 
     @Expose()

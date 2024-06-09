@@ -5,7 +5,7 @@ export class UpdatePtSettingsDto {
     @Expose()
     @IsNumber()
     @IsOptional()
-    length: number
+    pomodoro: number
 
     @Expose()
     @IsNumber()
