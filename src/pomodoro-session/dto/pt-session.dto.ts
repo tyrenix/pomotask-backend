@@ -28,6 +28,9 @@ export class PtSessionDto {
     type: PomodoroSessionType
 
     @Expose()
+    completionTime: string
+
+    @Expose()
     createdAt: Date
 }
 
