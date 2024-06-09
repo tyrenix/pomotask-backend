@@ -1,4 +1,3 @@
-import {isValidObjectId} from 'mongoose'
 import {
     BadRequestException,
     Body,
@@ -14,27 +13,19 @@ import {
     UsePipes,
     ValidationPipe
 } from '@nestjs/common'
-import {PomodoroSessionService} from '@src/pomodoro-session/pomodoro-session.service'
 import {Auth} from '@src/auth/decorators/auth.decorator'
 import {GetUserIdDecorator} from '@src/auth/decorators/get-user-id.decorator'
-import {
-    CreatePtSessionDto,
-    toCreatePtSessionDto
-} from '@src/pomodoro-session/dto/create-pt-session.dto'
+import {CreatePtSessionDto} from '@src/pomodoro-session/dto/create-pt-session.dto'
+import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
 import {
     PtSessionDto,
     toPtSessionDto
 } from '@src/pomodoro-session/dto/pt-session.dto'
-import {PomodoroSessionType} from '@src/schemas/pomodoro-session.schema'
-import {
-    UpdatePtSessionDto,
-    toUpdatePtSessionDto
-} from '@src/pomodoro-session/dto/update-pt-session.dto'
-import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
-import {
-    ActivityFiltersPtSessionDto,
-    toActivityFiltersPtSessionDto
-} from './dto/activity-filters-pt-session.dto'
+
+import {PomodoroSessionService} from '@src/pomodoro-session/pomodoro-session.service'
+import {isValidObjectId} from 'mongoose'
+import {ActivityFiltersPtSessionDto} from './dto/activity-filters-pt-session.dto'
+import {UpdatePtSessionDto} from './dto/update-pt-session.dto'
 
 @Controller('pomodoro-session')
 export class PomodoroSessionController {
@@ -44,26 +35,13 @@ export class PomodoroSessionController {
 
     @Post('create')
     @HttpCode(200)
-    @UsePipes(new ValidationPipe())
+    @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
     @Auth()
     async create(
         @GetUserIdDecorator() userId: string,
         @Body() dto: CreatePtSessionDto
     ): Promise<PtSessionDto> {
-        if (
-            !(
-                ['work', 'shortBreak', 'longBreak'] as PomodoroSessionType[]
-            ).includes(dto.type)
-        ) {
-            throw new BadRequestException(
-                'Pomodoro session type, may be only "work" | "shortBreak" | "longBreak"'
-            )
-        }
-
-        const ptSession = await this.pomodoroSessionService.create(
-            userId,
-            toCreatePtSessionDto(dto)
-        )
+        const ptSession = await this.pomodoroSessionService.create(userId, dto)
 
         if (!ptSession) {
             throw new InternalServerErrorException(
@@ -74,23 +52,53 @@ export class PomodoroSessionController {
         return toPtSessionDto(ptSession)
     }
 
-    @Patch(':ptSessionId')
+    @Get('active')
     @HttpCode(200)
-    @UsePipes(new ValidationPipe())
     @Auth()
-    async updateById(
+    async getActivePomodoro(
+        @GetUserIdDecorator() userId: string
+    ): Promise<PtSessionDto | null> {
+        const ptSession =
+            await this.pomodoroSessionService.getActivePomodoro(userId)
+
+        return !ptSession ? null : toPtSessionDto(ptSession)
+    }
+
+    @Patch('pause')
+    @HttpCode(200)
+    @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
+    @Auth()
+    async pause(
         @GetUserIdDecorator() userId: string,
-        @Param('ptSessionId') ptSessionId: string,
         @Body() dto: UpdatePtSessionDto
     ): Promise<PtSessionDto> {
-        if (!isValidObjectId(ptSessionId)) {
+        if (!isValidObjectId(dto.id)) {
             throw new BadRequestException('Invalid pomodoro session id')
         }
 
-        const ptSession = await this.pomodoroSessionService.updateById(
+        const ptSession = await this.pomodoroSessionService.pause(
             userId,
-            ptSessionId,
-            toUpdatePtSessionDto(dto)
+            dto.id
+        )
+
+        return toPtSessionDto(ptSession)
+    }
+
+    @Patch('completion')
+    @HttpCode(200)
+    @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
+    @Auth()
+    async completion(
+        @GetUserIdDecorator() userId: string,
+        @Body() dto: UpdatePtSessionDto
+    ): Promise<PtSessionDto> {
+        if (!isValidObjectId(dto.id)) {
+            throw new BadRequestException('Invalid pomodoro session id')
+        }
+
+        const ptSession = await this.pomodoroSessionService.completion(
+            userId,
+            dto.id
         )
 
         return toPtSessionDto(ptSession)

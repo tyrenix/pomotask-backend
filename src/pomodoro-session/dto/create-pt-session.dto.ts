@@ -1,16 +1,11 @@
-import {IsOptional, IsString} from 'class-validator'
 import {Expose, plainToInstance} from 'class-transformer'
-import {PomodoroSessionType} from '@src/schemas/pomodoro-session.schema'
+import {IsOptional, IsString} from 'class-validator'
 
 export class CreatePtSessionDto {
     @Expose()
     @IsString()
     @IsOptional()
     taskId: string
-
-    @Expose()
-    @IsString()
-    type: PomodoroSessionType
 }
 
 export const toCreatePtSessionDto = (ptSession: CreatePtSessionDto) =>

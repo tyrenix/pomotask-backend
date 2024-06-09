@@ -3,7 +3,7 @@ import {PomodoroSettingsDocument} from '@src/schemas/pomodoro-settings.schema'
 
 export class PtSettingsDto {
     @Expose()
-    length: number
+    pomodoro: number
 
     @Expose()
     longBreak: number

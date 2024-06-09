@@ -9,7 +9,7 @@ export class PomodoroSettings {
     userId: string
 
     @Prop({default: 1500})
-    length: number
+    pomodoro: number
 
     @Prop({default: 900})
     longBreak: number

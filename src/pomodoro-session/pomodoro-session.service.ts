@@ -1,27 +1,27 @@
-import {Model} from 'mongoose'
 import {
     BadRequestException,
     Injectable,
     NotFoundException
 } from '@nestjs/common'
 import {InjectModel} from '@nestjs/mongoose'
-import * as dateFns from 'date-fns'
+import {CreatePtSessionDto} from '@src/pomodoro-session/dto/create-pt-session.dto'
+import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
 import {
     PomodoroSession,
     PomodoroSessionDocument
 } from '@src/schemas/pomodoro-session.schema'
-import {CreatePtSessionDto} from '@src/pomodoro-session/dto/create-pt-session.dto'
-import {UpdatePtSessionDto} from '@src/pomodoro-session/dto/update-pt-session.dto'
-import {ListPtSessionDto} from '@src/pomodoro-session/dto/list-pt-session.dto'
-import {IsBoolean} from 'class-validator'
-import {PtSessionDto} from '@src/pomodoro-session/dto/pt-session.dto'
+import * as dateFns from 'date-fns'
+import {Model} from 'mongoose'
+import {PomodoroSettingsService} from '../pomodoro-settings/pomodoro-settings.service'
 import {ActivityFiltersPtSessionDto} from './dto/activity-filters-pt-session.dto'
+import {PtSessionDto} from './dto/pt-session.dto'
 
 @Injectable()
 export class PomodoroSessionService {
     constructor(
         @InjectModel(PomodoroSession.name)
-        private readonly pomodoroSessionModel: Model<PomodoroSession>
+        private readonly pomodoroSessionModel: Model<PomodoroSession>,
+        private readonly pomodoroSettingsService: PomodoroSettingsService
     ) {}
 
     async create(
@@ -37,16 +37,69 @@ export class PomodoroSessionService {
             throw new BadRequestException('Exist opening pomodoro session')
         }
 
-        return new this.pomodoroSessionModel({userId, ...dto}).save()
+        const ptSettings = await this.pomodoroSettingsService.get(userId)
+
+        // Get type pomodoro
+        const ptSessions = await this.pomodoroSessionModel
+            .find({userId})
+            .sort({createdAt: -1})
+            .select('type')
+            .limit(ptSettings.longBreakFrequency * 3)
+
+        let type: PtSessionDto['type']
+        let countWorkSession: number = 0
+        // Check is last long break
+        for (let i = 0; i < ptSessions.length; i++) {
+            const ptSession = ptSessions[i]
+            if (ptSession.type === 'longBreak') {
+                break
+            }
+
+            if (ptSession.type === 'work') countWorkSession++
+            if (countWorkSession === ptSettings.longBreakFrequency) {
+                type = 'longBreak'
+                break
+            }
+        }
+
+        // if don`t set `longBreak`, set `work` or `shortBreak`
+        if (!type) {
+            if (ptSessions[0].type === 'work') type = 'shortBreak'
+            else type = 'work'
+        }
+
+        const totalSeconds =
+            type === 'longBreak'
+                ? ptSettings.longBreak
+                : type === 'shortBreak'
+                  ? ptSettings.shortBreak
+                  : ptSettings.pomodoro
+
+        const completionTime = new Date()
+        completionTime.setSeconds(completionTime.getSeconds() + totalSeconds)
+
+        return new this.pomodoroSessionModel({
+            userId,
+            taskId: dto.taskId,
+            totalSeconds,
+            completionTime,
+            type
+        }).save()
     }
 
-    async updateById(
+    async getActivePomodoro(userId: string): Promise<PomodoroSessionDocument> {
+        return this.pomodoroSessionModel
+            .findOne({userId, isCompleted: false})
+            .exec()
+    }
+
+    async pause(
         userId: string,
-        ptSessionId: string,
-        dto: UpdatePtSessionDto
+        ptSessionId: string
     ): Promise<PomodoroSessionDocument> {
         const ptSession = await this.pomodoroSessionModel.findOne({
             _id: ptSessionId,
+            isCompleted: false,
             userId
         })
 
@@ -54,15 +107,86 @@ export class PomodoroSessionService {
             throw new NotFoundException('Pomodoro session not found')
         }
 
-        if (ptSession.isCompleted) {
-            throw new BadRequestException(
-                'You cannot update a completed pomodoro session'
+        ptSession.isPaused = !ptSession.isPaused
+        if (ptSession.isPaused) {
+            let completedSeconds: number =
+                ptSession.totalSeconds -
+                Math.abs(
+                    Math.floor(
+                        (new Date(ptSession.completionTime).getTime() -
+                            Date.now()) /
+                            1e3
+                    )
+                )
+
+            if (completedSeconds < 0) {
+                completedSeconds = ptSession.totalSeconds
+            }
+
+            ptSession.completedSeconds = completedSeconds
+        } else {
+            const completionTime = new Date()
+            completionTime.setSeconds(
+                completionTime.getSeconds() +
+                    (ptSession.totalSeconds - ptSession.completedSeconds)
             )
+
+            ptSession.completionTime = completionTime
         }
 
-        await ptSession.updateOne({...dto})
+        await ptSession.save()
 
-        return this.pomodoroSessionModel.findOne({_id: ptSessionId, userId})
+        return ptSession
+    }
+
+    async completion(
+        userId: string,
+        ptSessionId: string
+    ): Promise<PomodoroSessionDocument> {
+        const ptSession = await this.pomodoroSessionModel.findOne({
+            _id: ptSessionId,
+            isCompleted: false,
+            userId
+        })
+
+        if (!ptSession) {
+            throw new NotFoundException('Pomodoro session not found')
+        }
+
+        let completedSeconds: number =
+            ptSession.totalSeconds -
+            Math.abs(
+                Math.floor(
+                    (new Date(ptSession.completionTime).getTime() -
+                        Date.now()) /
+                        1e3
+                )
+            )
+
+        if (completedSeconds < 0) {
+            completedSeconds = ptSession.totalSeconds
+        }
+
+        ptSession.completedSeconds = completedSeconds
+        ptSession.completionTime = new Date()
+        ptSession.isCompleted = true
+        ptSession.isPaused = false
+
+        await ptSession.save()
+
+        return ptSession
+    }
+
+    async findCompletions() {
+        const ptSessions = await this.pomodoroSessionModel.find({
+            isCompleted: false,
+            isPaused: false,
+            completionTime: {$lte: new Date()}
+        })
+
+        for (const ptSession of ptSessions) {
+            await this.completion(ptSession.userId, ptSession.id)
+        }
     }
 
     async list(
