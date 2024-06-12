@@ -64,8 +64,11 @@ export class PomodoroSessionService {
 
         // if don`t set `longBreak`, set `work` or `shortBreak`
         if (!type) {
-            if (ptSessions[0].type === 'work') type = 'shortBreak'
-            else type = 'work'
+            if (ptSessions.length && ptSessions[0].type === 'work') {
+                type = 'shortBreak'
+            } else {
+                type = 'work'
+            }
         }
 
         const totalSeconds =
