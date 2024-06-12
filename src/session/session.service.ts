@@ -55,8 +55,6 @@ export class SessionService {
             )
         )
 
-        console.log(result)
-
         if (!result || !result.userId) {
             throw new UnauthorizedException('Not found session')
         }
