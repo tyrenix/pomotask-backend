@@ -19,6 +19,12 @@ export class Task {
 
     @Prop({default: false})
     isCompleted: boolean
+
+    @Prop({required: true})
+    projectId: string
+
+    @Prop({required: true})
+    columnId: string
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task)

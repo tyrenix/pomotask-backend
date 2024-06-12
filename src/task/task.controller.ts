@@ -4,23 +4,23 @@ import {
     Controller,
     Delete,
     Get,
-    Query,
     HttpCode,
     NotFoundException,
     Param,
     Patch,
     Post,
+    Query,
     UsePipes,
     ValidationPipe
 } from '@nestjs/common'
-import {isValidObjectId} from 'mongoose'
-import {TaskService} from '@src/task/task.service'
+import {Auth} from '@src/auth/decorators/auth.decorator'
+import {GetUserIdDecorator} from '@src/auth/decorators/get-user-id.decorator'
 import {CreateTaskDto} from '@src/task/dto/create-task.dto'
 import {TaskDto, toTaskDto} from '@src/task/dto/task.dto'
-import {GetUserIdDecorator} from '@src/auth/decorators/get-user-id.decorator'
-import {Auth} from '@src/auth/decorators/auth.decorator'
-import {toUpdateTaskDto, UpdateTaskDto} from '@src/task/dto/update-task.dto'
+import {UpdateTaskDto} from '@src/task/dto/update-task.dto'
+import {TaskService} from '@src/task/task.service'
 import {SearchFilterTypes} from '@src/task/types/search-filter.types'
+import {isValidObjectId} from 'mongoose'
 
 @Controller('task')
 export class TaskController {
@@ -86,18 +86,14 @@ export class TaskController {
 
     @Patch(':taskId')
     @HttpCode(200)
-    @UsePipes(new ValidationPipe())
+    @UsePipes(new ValidationPipe({transform: true, whitelist: true}))
     @Auth()
     async updateById(
         @GetUserIdDecorator() userId: string,
         @Param('taskId') taskId: string,
         @Body() dto: UpdateTaskDto
     ): Promise<TaskDto> {
-        const task = await this.taskService.updateById(
-            userId,
-            taskId,
-            toUpdateTaskDto(dto)
-        )
+        const task = await this.taskService.updateById(userId, taskId, dto)
         return toTaskDto(task)
     }
 

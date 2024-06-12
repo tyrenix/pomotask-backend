@@ -1,20 +1,71 @@
-import {Injectable, NotFoundException} from '@nestjs/common'
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException
+} from '@nestjs/common'
 import {InjectModel} from '@nestjs/mongoose'
-import {Model} from 'mongoose'
+import {isValidObjectId, Model} from 'mongoose'
 import {Task, TaskDocument} from '@src/schemas/task.schema'
 import {CreateTaskDto} from '@src/task/dto/create-task.dto'
 import {SearchFilterTypes} from '@src/task/types/search-filter.types'
 import {UpdateTaskDto} from '@src/task/dto/update-task.dto'
+import {ColumnService} from '../column/column.service'
+import {ProjectService} from '../project/project.service'
 
 @Injectable()
 export class TaskService {
     constructor(
-        @InjectModel(Task.name) private readonly taskModel: Model<Task>
+        @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+        private readonly columnService: ColumnService,
+        private readonly projectService: ProjectService
     ) {}
 
     async create(userId: string, dto: CreateTaskDto): Promise<TaskDocument> {
+        if (!dto.projectId) {
+            const project = await this.projectService.getByType(
+                userId,
+                'all-tasks'
+            )
+            const column = await this.columnService.getDCForProject(
+                userId,
+                project.id
+            )
+
+            dto.projectId = project.id
+            dto.columnId = column.id
+        }
+
+        if (!isValidObjectId(dto.projectId))
+            throw new BadRequestException('Invalid project id')
+
+        if (!(await this.projectService.getById(userId, dto.projectId)))
+            throw new NotFoundException('Not found project')
+
+        if (!dto.columnId) {
+            const column = await this.columnService.getDCForProject(
+                userId,
+                dto.projectId
+            )
+
+            dto.columnId = column.id
+        }
+
+        if (!isValidObjectId(dto.columnId))
+            throw new BadRequestException('Invalid column id')
+
+        if (
+            !(await this.columnService.getById(
+                userId,
+                dto.projectId,
+                dto.columnId
+            ))
+        )
+            throw new NotFoundException('Not found column')
+
         return new this.taskModel({
             userId,
+            projectId: dto.projectId,
+            columnId: dto.columnId,
             title: dto.title,
             description: dto.description,
             index:
