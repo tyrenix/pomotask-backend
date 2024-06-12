@@ -8,6 +8,8 @@ import {SessionModule} from '@src/session/session.module'
 import {PomodoroSettingsModule} from '@src/pomodoro-settings/pomodoro-settings.module'
 import {PomodoroSessionModule} from '@src/pomodoro-session/pomodoro-session.module'
 import {UserModule} from '@src/user/user.module'
+import { ProjectModule } from './project/project.module';
+import { ColumnModule } from './column/column.module';
 
 @Module({
     imports: [
@@ -19,7 +21,9 @@ import {UserModule} from '@src/user/user.module'
         UserModule,
         PomodoroSettingsModule,
         PomodoroSessionModule,
-        TaskModule
+        TaskModule,
+        ProjectModule,
+        ColumnModule
     ],
     controllers: [],
     providers: []

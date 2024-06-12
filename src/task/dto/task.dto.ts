@@ -19,6 +19,12 @@ export class TaskDto {
     index: number
 
     @Expose()
+    projectId: string
+
+    @Expose()
+    columnId: string
+
+    @Expose()
     createdAt: Date
 
     @Expose()

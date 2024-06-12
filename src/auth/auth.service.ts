@@ -15,6 +15,7 @@ import {TaskService} from '@src/task/task.service'
 import {UserService} from '@src/user/user.service'
 import * as argon2 from 'argon2'
 import type {Response} from 'express'
+import {ProjectService} from '../project/project.service'
 
 export enum ETokens {
     access = 'accessToken',
@@ -32,7 +33,8 @@ export class AuthService {
         private readonly configService: ConfigService,
         private readonly sessionService: SessionService,
         private readonly pomodoroSettingsService: PomodoroSettingsService,
-        private readonly taskService: TaskService
+        private readonly taskService: TaskService,
+        private readonly projectService: ProjectService
     ) {}
 
     async register(
@@ -50,6 +52,12 @@ export class AuthService {
 
         // Create default configuration for pomodoro timer
         await this.pomodoroSettingsService.create(user.id)
+        // Create default project
+        await this.projectService.create(
+            user.id,
+            {title: undefined},
+            'all-tasks'
+        )
         // Create default task
         await this.taskService.create(user.id, {
             title: 'Знакомство с Pomotask',
