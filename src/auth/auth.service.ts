@@ -138,8 +138,6 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token')
         }
 
-        console.log(result)
-
         await this.sessionService.validate(result.userId, result.sessionId)
         await this.sessionService.updateExpirationDate(
             result.userId,
