@@ -10,12 +10,12 @@ import {AuthDto} from '@src/auth/dto/auth.dto'
 import {JwtDto} from '@src/auth/dto/jwt.dto'
 import {PomodoroSettingsService} from '@src/pomodoro-settings/pomodoro-settings.service'
 import {UserDocument} from '@src/schemas/user.schema'
-import {SessionService} from '@src/session/session.service'
 import {TaskService} from '@src/task/task.service'
 import {UserService} from '@src/user/user.service'
 import * as argon2 from 'argon2'
 import type {Response} from 'express'
 import {ProjectService} from '../project/project.service'
+import {SessionService} from '../session/session.service'
 
 export enum ETokens {
     access = 'accessToken',
@@ -24,8 +24,8 @@ export enum ETokens {
 
 @Injectable()
 export class AuthService {
-    readonly EXPIRE_DAY_REFRESH_TOKEN = 30
-    readonly REFRESH_TOKEN_NAME = ETokens.refresh
+    readonly EXPIRE_DAY_REFRESH_TOKEN: number = 7
+    readonly REFRESH_TOKEN_NAME: string = ETokens.refresh
 
     constructor(
         private readonly userService: UserService,
@@ -170,9 +170,9 @@ export class AuthService {
         res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
             httpOnly: true,
             // domain: getDomainConfig(this.configService).domain,
-            // sameSite: 'lax',
-            // secure: true,
-            sameSite: 'none',
+            sameSite: 'lax',
+            secure: true,
+            // sameSite: 'none',
             expires: expiresIn
         })
     }

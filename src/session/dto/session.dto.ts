@@ -1,6 +1,6 @@
 import {Expose, plainToInstance} from 'class-transformer'
 
-export class SessionDataDto {
+export class SessionDto {
     @Expose()
     userId: string
 
@@ -14,7 +14,7 @@ export class SessionDataDto {
     userAgent?: string
 }
 
-export const toSessionDataDto = (sessionData: SessionDataDto) =>
-    plainToInstance(SessionDataDto, sessionData, {
+export const toSessionDto = (sessionData: SessionDto) =>
+    plainToInstance(SessionDto, sessionData, {
         excludeExtraneousValues: true
     })

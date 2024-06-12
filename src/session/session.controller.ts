@@ -1,15 +1,15 @@
 import {
+    Body,
     Controller,
     Delete,
     Get,
-    Body,
-    Param,
-    InternalServerErrorException
+    InternalServerErrorException,
+    Param
 } from '@nestjs/common'
 import {Auth} from '@src/auth/decorators/auth.decorator'
-import {SessionService} from '@src/session/session.service'
 import {GetUserIdDecorator} from '@src/auth/decorators/get-user-id.decorator'
-import {SessionDataDto, toSessionDataDto} from './dto/session-data.dto'
+import {SessionDto, toSessionDto} from './dto/session.dto'
+import {SessionService} from './session.service'
 
 @Controller('session')
 export class SessionController {
@@ -26,9 +26,9 @@ export class SessionController {
     async getById(
         @GetUserIdDecorator() userId: string,
         @Param('sessionId') sessionId: string
-    ): Promise<SessionDataDto> {
+    ): Promise<SessionDto> {
         const session = await this.sessionService.getById(userId, sessionId)
-        return toSessionDataDto(session)
+        return toSessionDto(session)
     }
 
     @Auth()

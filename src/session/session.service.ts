@@ -1,13 +1,13 @@
-import Redis from 'ioredis'
-import {Types as MongooseTypes} from 'mongoose'
+import {InjectRedis} from '@nestjs-modules/ioredis'
 import {
     Injectable,
     InternalServerErrorException,
     NotFoundException,
     UnauthorizedException
 } from '@nestjs/common'
-import {InjectRedis} from '@nestjs-modules/ioredis'
-import {SessionDataDto} from '@src/session/dto/session-data.dto'
+import {SessionDto} from '@src/session/dto/session.dto'
+import Redis from 'ioredis'
+import {Types as MongooseTypes} from 'mongoose'
 
 @Injectable()
 export class SessionService {
@@ -15,10 +15,7 @@ export class SessionService {
 
     constructor(@InjectRedis() private readonly redisService: Redis) {}
 
-    async create(
-        sessionData: SessionDataDto,
-        ttl: number
-    ): Promise<{id: string}> {
+    async create(sessionData: SessionDto, ttl: number): Promise<{id: string}> {
         const sessionId = new MongooseTypes.ObjectId().toString()
 
         sessionData.createdAt = Math.floor(Date.now() / 1e3)
@@ -36,12 +33,13 @@ export class SessionService {
         return {id: sessionId}
     }
 
-    async getById(userId: string, sessionId: string): Promise<SessionDataDto> {
-        const result: SessionDataDto | undefined | null = JSON.parse(
+    async getById(userId: string, sessionId: string): Promise<SessionDto> {
+        const result: SessionDto | undefined | null = JSON.parse(
             await this.redisService.get(
                 `${this.SESSION_PREFIX}:${userId}:${sessionId}`
             )
         )
+        console.log(result, `${this.SESSION_PREFIX}:${userId}:${sessionId}`)
 
         if (!result) {
             throw new NotFoundException('Not found session')
@@ -50,8 +48,8 @@ export class SessionService {
         return result
     }
 
-    async validate(userId: string, sessionId: string): Promise<SessionDataDto> {
-        const result: SessionDataDto | undefined | null = JSON.parse(
+    async validate(userId: string, sessionId: string): Promise<SessionDto> {
+        const result: SessionDto | undefined | null = JSON.parse(
             await this.redisService.get(
                 `${this.SESSION_PREFIX}:${userId}:${sessionId}`
             )
@@ -85,9 +83,9 @@ export class SessionService {
         return this.redisService.del(keys)
     }
 
-    async list(userId: string): Promise<Record<'string', SessionDataDto>> {
+    async list(userId: string): Promise<Record<'string', SessionDto>> {
         const _pattern = `${this.SESSION_PREFIX}:${userId}:*` as const
-        const sessions: Record<string, SessionDataDto> = {}
+        const sessions: Record<string, SessionDto> = {}
 
         const keys = await this.redisService.keys(_pattern)
         for (const key of keys) {
