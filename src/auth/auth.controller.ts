@@ -88,7 +88,10 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(200)
-    async logout(@Req() req: Request, @Res({passthrough: true}) res: Response): Promise<{success: true}> {
+    async logout(
+        @Req() req: Request,
+        @Res({passthrough: true}) res: Response
+    ): Promise<{success: true}> {
         const refreshTokenFromCookie = req.cookies?.[ETokens.refresh]
         if (!refreshTokenFromCookie) {
             this.authService.deleteRefreshTokenFromResponse(res)
