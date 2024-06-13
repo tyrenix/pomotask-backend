@@ -31,7 +31,7 @@ export class AuthController {
             email: dto.email,
             password: dto.password,
             userAgent: req.headers['user-agent'],
-            ip: (req.headers['x-real-ip'] as any) || req.ip || ''
+            ip: (req.headers['X-Real-IP'] as any) || req.ip || ''
         })
 
         this.authService.addRefreshTokenToResponse(res, tokens.refreshToken)
@@ -54,7 +54,7 @@ export class AuthController {
             email: dto.email,
             password: dto.password,
             userAgent: req.headers['user-agent'],
-            ip: (req.headers['x-real-ip'] as any) || req.ip || ''
+            ip: (req.headers['X-Real-IP'] as any) || req.ip || ''
         })
 
         this.authService.addRefreshTokenToResponse(res, tokens.refreshToken)
