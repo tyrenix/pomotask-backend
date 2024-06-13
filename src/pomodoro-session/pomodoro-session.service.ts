@@ -91,9 +91,32 @@ export class PomodoroSessionService {
     }
 
     async getActivePomodoro(userId: string): Promise<PomodoroSessionDocument> {
-        return this.pomodoroSessionModel
+        const pomodoro = await this.pomodoroSessionModel
             .findOne({userId, isCompleted: false})
             .exec()
+
+        if (!pomodoro) return null
+
+        if (!pomodoro.isPaused) {
+            let completedSeconds: number =
+                pomodoro.totalSeconds -
+                Math.abs(
+                    Math.floor(
+                        (new Date(pomodoro.completionTime).getTime() -
+                            Date.now()) /
+                            1e3
+                    )
+                )
+
+            if (completedSeconds < 0) {
+                completedSeconds = pomodoro.totalSeconds
+            }
+
+            pomodoro.completedSeconds = completedSeconds
+            await pomodoro.save()
+        }
+
+        return pomodoro
     }
 
     async pause(
