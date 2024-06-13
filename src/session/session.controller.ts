@@ -15,6 +15,12 @@ import {SessionService} from './session.service'
 export class SessionController {
     constructor(private readonly sessionService: SessionService) {}
 
+    // FIXME: delete this
+    @Get('hello')
+    async hello() {
+        return 'Hello world!'
+    }
+
     @Get('list')
     @Auth()
     async list(@GetUserIdDecorator() userId: string) {
