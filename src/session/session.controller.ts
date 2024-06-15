@@ -15,12 +15,6 @@ import {SessionService} from './session.service'
 export class SessionController {
     constructor(private readonly sessionService: SessionService) {}
 
-    // FIXME: delete this
-    @Get('hello')
-    async hello() {
-        return 'Hello world!'
-    }
-
     @Get('list')
     @Auth()
     async list(@GetUserIdDecorator() userId: string) {
@@ -39,7 +33,9 @@ export class SessionController {
 
     @Auth()
     @Delete('closeAll')
-    async closeAll(@GetUserIdDecorator() userId: string) {
+    async closeAll(
+        @GetUserIdDecorator() userId: string
+    ): Promise<{success: true}> {
         await this.sessionService.closeAll(userId)
         return {success: true}
     }
