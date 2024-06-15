@@ -7,13 +7,17 @@ import {
     Req,
     UsePipes,
     ValidationPipe,
-    UnauthorizedException
+    UnauthorizedException,
+    BadRequestException
 } from '@nestjs/common'
 import type {Response, Request} from 'express'
 import {AuthService, ETokens} from './auth.service'
 import {toUserDto} from '@src/user/dto/user.dto'
 import {AuthDto} from '@src/auth/dto/auth.dto'
 import {AuthSuccessDto, toAuthSuccessDto} from '@src/auth/dto/auth-success.dto'
+import {Auth} from './decorators/auth.decorator'
+import {GetUserIdDecorator} from './decorators/get-user-id.decorator'
+import {GetAuthDecorator} from './decorators/get-auth.decorator'
 
 @Controller('auth')
 export class AuthController {
@@ -88,19 +92,21 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(200)
+    @Auth()
     async logout(
         @Req() req: Request,
-        @Res({passthrough: true}) res: Response
+        @Res({passthrough: true}) res: Response,
+        @GetUserIdDecorator() userId: string,
+        @GetAuthDecorator() auth
     ): Promise<{success: true}> {
-        const refreshTokenFromCookie = req.cookies?.[ETokens.refresh]
-        if (!refreshTokenFromCookie) {
-            this.authService.deleteRefreshTokenFromResponse(res)
-            throw new UnauthorizedException('Refresh token not passed')
-        }
-
-        await this.authService.logout(refreshTokenFromCookie)
         this.authService.deleteRefreshTokenFromResponse(res)
 
+        const sessionId: string = auth?.jwt?.sessionId
+        if (!sessionId) {
+            throw new BadRequestException('Invalid session id')
+        }
+
+        await this.authService.logout(userId, sessionId)
         return {success: true}
     }
 }

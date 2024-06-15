@@ -151,16 +151,8 @@ export class AuthService {
         })
     }
 
-    async logout(refreshToken: string) {
-        const result: JwtDto | undefined | null = await this.jwtService
-            .verifyAsync(refreshToken)
-            .catch(() => {})
-
-        if (!result || result.type !== 'refresh') {
-            throw new UnauthorizedException('Invalid refresh token')
-        }
-
-        return this.sessionService.close(result.userId, result.sessionId)
+    async logout(userId: string, sessionId: string) {
+        return this.sessionService.close(userId, sessionId)
     }
 
     addRefreshTokenToResponse(res: Response, refreshToken: string) {
