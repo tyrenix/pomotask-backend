@@ -281,9 +281,10 @@ export class PomodoroSessionService {
         }
 
         const ptSessions = await this.pomodoroSessionModel.find({
+            ...queryFilters,
             userId,
             isCompleted: true,
-            ...queryFilters
+            type: 'work'
         })
 
         return ptSessions.reduce((sum, prev) => prev.completedSeconds + sum, 0)
