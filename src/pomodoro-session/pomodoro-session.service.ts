@@ -189,7 +189,7 @@ export class PomodoroSessionService {
                 )
             )
 
-        if (completedSeconds < 0) {
+        if (completedSeconds < 10) {
             completedSeconds = ptSession.totalSeconds
         }
 
