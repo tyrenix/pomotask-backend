@@ -189,7 +189,10 @@ export class PomodoroSessionService {
                 )
             )
 
-        if (completedSeconds < 10) {
+        if (
+            completedSeconds < 0 ||
+            ptSession.totalSeconds - completedSeconds < 10
+        ) {
             completedSeconds = ptSession.totalSeconds
         }
 
@@ -229,7 +232,7 @@ export class PomodoroSessionService {
         }
 
         return this.pomodoroSessionModel
-            .find(query)
+            .find({...query, isCompleted: true})
             .sort({createdAt: -1})
             .skip(filters.page * filters.limit)
             .limit(filters.limit)
@@ -278,9 +281,10 @@ export class PomodoroSessionService {
         }
 
         const ptSessions = await this.pomodoroSessionModel.find({
+            ...queryFilters,
             userId,
             isCompleted: true,
-            ...queryFilters
+            type: 'work'
         })
 
         return ptSessions.reduce((sum, prev) => prev.completedSeconds + sum, 0)
