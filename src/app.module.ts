@@ -10,6 +10,7 @@ import {PomodoroSessionModule} from '@src/pomodoro-session/pomodoro-session.modu
 import {UserModule} from '@src/user/user.module'
 import { ProjectModule } from './project/project.module';
 import { ColumnModule } from './column/column.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
     imports: [
@@ -23,7 +24,8 @@ import { ColumnModule } from './column/column.module';
         PomodoroSessionModule,
         TaskModule,
         ProjectModule,
-        ColumnModule
+        ColumnModule,
+        NotificationModule
     ],
     controllers: [],
     providers: []
