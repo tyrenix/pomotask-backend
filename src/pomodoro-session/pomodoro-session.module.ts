@@ -19,6 +19,7 @@ import {PomodoroSessionScheduler} from './pomodoro-session.scheduler'
         ])
     ],
     controllers: [PomodoroSessionController],
-    providers: [PomodoroSessionService, PomodoroSessionScheduler]
+    providers: [PomodoroSessionService, PomodoroSessionScheduler],
+    exports: [PomodoroSessionService]
 })
 export class PomodoroSessionModule {}

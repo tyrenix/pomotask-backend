@@ -11,11 +11,13 @@ import {SearchFilterTypes} from '@src/task/types/search-filter.types'
 import {UpdateTaskDto} from '@src/task/dto/update-task.dto'
 import {ColumnService} from '../column/column.service'
 import {ProjectService} from '../project/project.service'
+import {PomodoroSessionService} from '../pomodoro-session/pomodoro-session.service'
 
 @Injectable()
 export class TaskService {
     constructor(
         @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+        private readonly ptSessionsService: PomodoroSessionService,
         private readonly columnService: ColumnService,
         private readonly projectService: ProjectService
     ) {}
@@ -145,6 +147,7 @@ export class TaskService {
     }
 
     async deleteById(userId: string, taskId: string) {
+        await this.ptSessionsService.untieFromTask(userId, taskId)
         return this.taskModel.deleteOne({_id: taskId, userId})
     }
 }

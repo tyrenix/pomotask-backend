@@ -38,38 +38,7 @@ export class PomodoroSessionService {
         }
 
         const ptSettings = await this.pomodoroSettingsService.get(userId)
-
-        // Get type pomodoro
-        const ptSessions = await this.pomodoroSessionModel
-            .find({userId})
-            .sort({createdAt: -1})
-            .select('type')
-            .limit(ptSettings.longBreakFrequency * 3)
-
-        let type: PtSessionDto['type']
-        let countWorkSession: number = 0
-        // Check is last long break
-        for (let i = 0; i < ptSessions.length; i++) {
-            const ptSession = ptSessions[i]
-            if (ptSession.type === 'longBreak') {
-                break
-            }
-
-            if (ptSession.type === 'work') countWorkSession++
-            if (countWorkSession === ptSettings.longBreakFrequency) {
-                type = 'longBreak'
-                break
-            }
-        }
-
-        // if don`t set `longBreak`, set `work` or `shortBreak`
-        if (!type) {
-            if (ptSessions.length && ptSessions[0].type === 'work') {
-                type = 'shortBreak'
-            } else {
-                type = 'work'
-            }
-        }
+        const [type] = await this.upcoming(userId, 1)
 
         const totalSeconds =
             type === 'longBreak'
@@ -206,6 +175,76 @@ export class PomodoroSessionService {
         return ptSession
     }
 
+    async upcoming(
+        userId: string,
+        numberOfPredictions: number = 5
+    ): Promise<PtSessionDto['type'][]> {
+        const ptSettings = await this.pomodoroSettingsService.get(userId)
+        const ptSessions = await this.pomodoroSessionModel
+            .find({userId, isCompleted: true})
+            .sort({createdAt: -1})
+            .select('type')
+            .limit(ptSettings.longBreakFrequency * 3)
+
+        return this.predictNextSessions({
+            initialSessions: ptSessions
+                .map(ptSession => ptSession.type)
+                .reverse(),
+            longBreakFrequency: ptSettings.longBreakFrequency,
+            numberOfPredictions
+        })
+    }
+
+    private predictNextSessions({
+        initialSessions,
+        shortBreakFrequency = 1,
+        longBreakFrequency,
+        numberOfPredictions
+    }: {
+        initialSessions: PtSessionDto['type'][]
+        shortBreakFrequency?: number
+        longBreakFrequency: number
+        numberOfPredictions: number
+    }): PtSessionDto['type'][] {
+        const predictedSessions: PtSessionDto['type'][] = []
+        let workCount = 0
+        let lastSession: PtSessionDto['type'] | null = null
+
+        initialSessions.forEach(session => {
+            if (session === 'work') {
+                workCount++
+            } else if (session === 'longBreak') {
+                workCount = 0
+            }
+
+            lastSession = session
+        })
+
+        for (let i = 0; i < numberOfPredictions; i++) {
+            if (lastSession === 'work') {
+                if (workCount > 0 && workCount % longBreakFrequency === 0) {
+                    predictedSessions.push('longBreak')
+                    workCount = 0
+                } else if (
+                    workCount > 0 &&
+                    workCount % shortBreakFrequency === 0
+                ) {
+                    predictedSessions.push('shortBreak')
+                } else {
+                    predictedSessions.push('work')
+                    workCount++
+                }
+            } else {
+                predictedSessions.push('work')
+                workCount++
+            }
+
+            lastSession = predictedSessions[predictedSessions.length - 1]
+        }
+
+        return predictedSessions
+    }
+
     async findCompletions() {
         const ptSessions = await this.pomodoroSessionModel.find({
             isCompleted: false,
@@ -288,6 +327,12 @@ export class PomodoroSessionService {
         })
 
         return ptSessions.reduce((sum, prev) => prev.completedSeconds + sum, 0)
+    }
+
+    async untieFromTask(userId: string, taskId: string) {
+        return this.pomodoroSessionModel
+            .updateMany({userId, taskId}, {taskId: null})
+            .exec()
     }
 
     async deleteById(userId: string, ptSessionId: string) {
