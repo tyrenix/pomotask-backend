@@ -26,15 +26,9 @@ export class NotificationController {
         await this.notificationService.save(userId, subscription)
     }
 
-    @Post('send')
-    async sendNotification(@Body() body: {userId: string; payload: any}) {
-        const {userId, payload} = body
-        return this.notificationService.send(userId, payload)
-    }
-
-    @Get('publicKey')
+    @Get('public-key')
     @Auth()
-    getPublicKey() {
-        return this.notificationService.getPublicKey()
+    getPublicKey(): {publicKey: string} {
+        return {publicKey: this.notificationService.getPublicKey()}
     }
 }

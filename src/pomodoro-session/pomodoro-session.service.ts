@@ -12,6 +12,7 @@ import {
 } from '@src/schemas/pomodoro-session.schema'
 import * as dateFns from 'date-fns'
 import {Model} from 'mongoose'
+import {NotificationService} from '../notification/notification.service'
 import {PomodoroSettingsService} from '../pomodoro-settings/pomodoro-settings.service'
 import {ActivityFiltersPtSessionDto} from './dto/activity-filters-pt-session.dto'
 import {PtSessionDto} from './dto/pt-session.dto'
@@ -21,7 +22,8 @@ export class PomodoroSessionService {
     constructor(
         @InjectModel(PomodoroSession.name)
         private readonly pomodoroSessionModel: Model<PomodoroSession>,
-        private readonly pomodoroSettingsService: PomodoroSettingsService
+        private readonly pomodoroSettingsService: PomodoroSettingsService,
+        private readonly notificationService: NotificationService
     ) {}
 
     async create(
@@ -254,6 +256,9 @@ export class PomodoroSessionService {
 
         for (const ptSession of ptSessions) {
             await this.completion(ptSession.userId, ptSession.id)
+            await this.notificationService.send(ptSession.userId, {
+                title: 'Pomodoro is complete!'
+            })
         }
     }
 

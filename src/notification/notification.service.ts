@@ -9,6 +9,7 @@ import {
     Notification,
     NotificationDocument
 } from '../schemas/notification.schema'
+import {IPayloadType} from './types/payload.types'
 
 @Injectable()
 export class NotificationService {
@@ -19,7 +20,7 @@ export class NotificationService {
     ) {
         const vapidKeys = getWebPushConfig(configService)
         webPush.setVapidDetails(
-            'mailto:example@yourdomain.org',
+            'mailto:ask@pt.dilacraft.ru',
             vapidKeys.publicKey,
             vapidKeys.privateKey
         )
@@ -35,13 +36,17 @@ export class NotificationService {
         }).save()
     }
 
-    async send(userId: string, payload: any) {
+    async send(userId: string, payload: IPayloadType) {
         const subscriptions = await this.notificationModel.find({userId}).exec()
         const results = []
 
         for (const sub of subscriptions) {
             try {
-                await webPush.sendNotification(sub.subscription, payload)
+                await webPush.sendNotification(
+                    sub.subscription,
+                    JSON.stringify(payload)
+                )
+
                 results.push({status: 'success', subscription: sub})
             } catch (error) {
                 if (error.statusCode === 410 || error.statusCode === 404) {
@@ -49,6 +54,7 @@ export class NotificationService {
                         .deleteOne({_id: sub._id})
                         .exec()
                 }
+
                 results.push({status: 'failed', subscription: sub, error})
             }
         }
@@ -56,6 +62,6 @@ export class NotificationService {
     }
 
     getPublicKey() {
-        return webPush.generateVAPIDKeys().publicKey
+        return getWebPushConfig(this.configService).publicKey
     }
 }

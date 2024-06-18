@@ -9,10 +9,12 @@ import {
     PomodoroSessionSchema
 } from '@src/schemas/pomodoro-session.schema'
 import {PomodoroSessionScheduler} from './pomodoro-session.scheduler'
+import {NotificationModule} from '../notification/notification.module'
 
 @Module({
     imports: [
         PomodoroSettingsModule,
+        NotificationModule,
         ScheduleModule.forRoot(),
         MongooseModule.forFeature([
             {name: PomodoroSession.name, schema: PomodoroSessionSchema}
