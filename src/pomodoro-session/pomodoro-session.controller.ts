@@ -52,6 +52,15 @@ export class PomodoroSessionController {
         return toPtSessionDto(ptSession)
     }
 
+    @Get('upcoming')
+    @HttpCode(200)
+    @Auth()
+    async upcoming(
+        @GetUserIdDecorator() userId: string
+    ): Promise<PtSessionDto['type'][]> {
+        return this.pomodoroSessionService.upcoming(userId)
+    }
+
     @Get('active')
     @HttpCode(200)
     @Auth()
