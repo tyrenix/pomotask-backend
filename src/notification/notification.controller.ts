@@ -22,7 +22,6 @@ export class NotificationController {
         @GetUserIdDecorator() userId: string,
         @Body() subscription: SubscribeDto
     ) {
-        console.log(subscription)
         await this.notificationService.save(userId, subscription)
     }
 
